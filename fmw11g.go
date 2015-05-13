@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func buildURLs() {
+func buildURLs(product string) {
 	baseURL := "http://docs.oracle.com/cd/E29542_01/nav/"
 
-	doc, err := goquery.NewDocument(baseURL + "wlst.htm")
+	doc, err := goquery.NewDocument(baseURL + product + ".htm")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,5 +56,6 @@ func buildURLs() {
 }
 
 func main() {
-	buildURLs()
+	var product = os.Args[1]
+	buildURLs(product)
 }
