@@ -55,7 +55,21 @@ func buildURLs(product string) {
 	})
 }
 
+func readme() {
+	fmt.Println("Usage: fmw11g PRODUCTNAME")
+	fmt.Println("Build commands to download offline files for this product.")
+	fmt.Println("")
+	fmt.Println("PRODUCTNAME=wls     : download files for WebLogic Server.")
+	fmt.Println("PRODUCTNAME=LIST    : list all products.")
+	fmt.Println("PRODUCTNAME=ALL     : download files for all products!")
+}
+
 func main() {
+	if len(os.Args) == 1 {
+		readme()
+		os.Exit(0)
+	}
+
 	var product = os.Args[1]
 	buildURLs(product)
 }
