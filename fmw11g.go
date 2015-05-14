@@ -24,15 +24,14 @@ func buildURLs(product string) {
 	var re = regexp.MustCompile(`([a-z]+)\.1111\/([a-z]\d+).pdf`) // (dir)(filename)
 
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
-		// find the booktitle block
-		tocURL, finded = s.Find(".booktitle > a").Attr("href")
-		if !finded {
-			log.Fatal("Can not found booktitle!")
-		}
-
 		pdfHref, pdfExists := s.Find("[href$='.pdf']").Attr("href")
 
 		if pdfExists {
+			// find the booktitle block
+			tocURL, finded = s.Find(".booktitle > a").Attr("href")
+			if !finded {
+				log.Fatal("Can not found toc url of " + pdfHref)
+			}
 			// get the toc document and extrace the full title of this doc
 			tocDoc, err := goquery.NewDocument(baseURL + tocURL)
 			if err != nil {
@@ -64,6 +63,34 @@ func readme() {
 	fmt.Println("PRODUCTNAME=ALL     : download files for all products!")
 }
 
+func listProducts() {
+	// Oracle Fusion Middleware Online Documentation Library 11g Release 1 (11.1.1.8)
+	baseURL := "http://docs.oracle.com/cd/E29542_01/index.htm"
+	doc, err := goquery.NewDocument(baseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var href = ""
+	var finded = false
+	var shortTitle = ""
+	var re = regexp.MustCompile(`(\w+)\.`)
+	var m = make(map[string]string)
+
+	doc.Find("[style='text-decoration:none']").Each(func(i int, s *goquery.Selection) {
+		href, finded = s.Attr("href")
+		shortTitle = s.Text()
+		matchs := re.FindStringSubmatch(href)
+
+		if len(matchs) > 1 {
+			m[matchs[1]] = shortTitle
+		}
+
+	})
+
+	fmt.Println(m)
+}
+
 func main() {
 	if len(os.Args) == 1 {
 		readme()
@@ -71,5 +98,12 @@ func main() {
 	}
 
 	var product = os.Args[1]
-	buildURLs(product)
+
+	switch product {
+	case "LIST":
+		listProducts()
+	case "ALL":
+	default:
+		buildURLs(product)
+	}
 }
