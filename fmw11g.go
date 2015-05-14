@@ -11,9 +11,9 @@ import (
 )
 
 func buildURLs(product string) {
-	baseURL := "http://docs.oracle.com/cd/E29542_01/nav/"
-
-	doc, err := goquery.NewDocument(baseURL + product + ".htm")
+	var baseURL = "http://docs.oracle.com/cd/E29542_01/nav/"
+	var productURL = baseURL + product + ".htm"
+	doc, err := goquery.NewDocument(productURL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,34 +21,41 @@ func buildURLs(product string) {
 	var fullTitle = ""
 	var finded = false
 	var tocURL = ""
-	var re = regexp.MustCompile(`([a-z]+)\.1111\/([a-z]\d+).pdf`) // (dir)(filename)
+	var re = regexp.MustCompile(`([a-z]+)\.1111\/([a-z]\d+).pdf`)
+	var localPdf = ""
 
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
-		pdfHref, pdfExists := s.Find("[href$='.pdf']").Attr("href")
-
-		if pdfExists {
-			// find the booktitle block
-			tocURL, finded = s.Find(".booktitle > a").Attr("href")
-			if !finded {
-				log.Fatal("Can not found toc url of " + pdfHref)
-			}
-			// get the toc document and extrace the full title of this doc
-			tocDoc, err := goquery.NewDocument(baseURL + tocURL)
-			if err != nil {
-				log.Fatal(err)
-			}
-			fullTitle, finded = tocDoc.Find("[name='dcterms.title']").Attr("content")
-			if !finded {
-				fullTitle = tocDoc.Find("title").Text()
-			}
-
-			fullTitle = strings.TrimLeft(fullTitle, "Fusion Middleware ")
-			fullTitle = strings.TrimLeft(fullTitle, "Oracle Fusion Middleware ")
+		if pdfHref, pdfExists := s.Find("[href$='.pdf']").Attr("href"); pdfExists {
+			// must be ../(dir)/(filename).pdf format
 			matchs := re.FindStringSubmatch(pdfHref)
-			localPdf := matchs[1] + "/" + strings.TrimSpace(fullTitle) + "." + matchs[2] + ".pdf"
+			if len(matchs) == 3 {
+				localPdf = matchs[1] + "/" + fullTitle + "." + matchs[2] + ".pdf"
+				fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
 
-			fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
-			fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
+				// find the booktitle block
+				bb := s.Find(".booktitle")
+				if len(bb.Nodes) > 0 {
+					if tocURL, finded = bb.Find("a").Attr("href"); finded {
+						// get the toc document and extrace the full title of this doc
+						tocDoc, err := goquery.NewDocument(baseURL + tocURL)
+						if err != nil {
+							log.Fatal(err)
+						}
+
+						fullTitle, finded = tocDoc.Find("[name='dcterms.title']").Attr("content")
+						if !finded {
+							fullTitle = tocDoc.Find("title").Text()
+						}
+					} else {
+						fullTitle = bb.Text()
+					}
+				}
+
+				fullTitle = strings.TrimSpace(fullTitle)
+				fullTitle = strings.TrimLeft(fullTitle, "Fusion Middleware ")
+				fullTitle = strings.TrimLeft(fullTitle, "Oracle Fusion Middleware ")
+				fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
+			}
 		}
 
 	})
@@ -63,7 +70,7 @@ func readme() {
 	fmt.Println("PRODUCTNAME=ALL     : download files for all products!")
 }
 
-func listProducts() {
+func listProducts() map[string]string {
 	// Oracle Fusion Middleware Online Documentation Library 11g Release 1 (11.1.1.8)
 	baseURL := "http://docs.oracle.com/cd/E29542_01/index.htm"
 	doc, err := goquery.NewDocument(baseURL)
@@ -88,7 +95,7 @@ func listProducts() {
 
 	})
 
-	fmt.Println(m)
+	return m
 }
 
 func main() {
@@ -101,8 +108,19 @@ func main() {
 
 	switch product {
 	case "LIST":
-		listProducts()
+		{
+			m := listProducts()
+			for p, s := range m {
+				fmt.Printf("%s -> %s\n", p, s)
+			}
+		}
 	case "ALL":
+		{
+			m := listProducts()
+			for p := range m {
+				buildURLs(p)
+			}
+		}
 	default:
 		buildURLs(product)
 	}
