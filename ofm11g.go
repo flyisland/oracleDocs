@@ -23,14 +23,13 @@ func buildURLs(product string) {
 	var tocURL = ""
 	var re = regexp.MustCompile(`([a-z]+)\.1111\/([a-z]\d+).pdf`)
 	var localPdf = ""
+	var invalidFileName = []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|"}
 
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
 		if pdfHref, pdfExists := s.Find("[href$='.pdf']").Attr("href"); pdfExists {
 			// must be ../(dir)/(filename).pdf format
 			matchs := re.FindStringSubmatch(pdfHref)
 			if len(matchs) == 3 {
-				fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
-
 				// find the booktitle block
 				bb := s.Find(".booktitle")
 				if len(bb.Nodes) > 0 {
@@ -50,9 +49,15 @@ func buildURLs(product string) {
 					}
 
 					fullTitle = strings.TrimSpace(fullTitle)
-					fullTitle = strings.TrimLeft(fullTitle, "Fusion Middleware ")
-					fullTitle = strings.TrimLeft(fullTitle, "Oracle Fusion Middleware ")
+					fullTitle = strings.Replace(fullTitle, "Fusion Middleware ", "", 1)
+					fullTitle = strings.Replace(fullTitle, "Oracle Fusion Middleware ", "", 1)
+
+					for _, c := range invalidFileName {
+						fullTitle = strings.Replace(fullTitle, c, "_", -1)
+					}
+
 					localPdf = matchs[1] + "/" + fullTitle + "." + matchs[2] + ".pdf"
+					fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
 					fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
 				}
 			}
