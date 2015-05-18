@@ -29,7 +29,6 @@ func buildURLs(product string) {
 			// must be ../(dir)/(filename).pdf format
 			matchs := re.FindStringSubmatch(pdfHref)
 			if len(matchs) == 3 {
-				localPdf = matchs[1] + "/" + fullTitle + "." + matchs[2] + ".pdf"
 				fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
 
 				// find the booktitle block
@@ -49,12 +48,13 @@ func buildURLs(product string) {
 					} else {
 						fullTitle = bb.Text()
 					}
-				}
 
-				fullTitle = strings.TrimSpace(fullTitle)
-				fullTitle = strings.TrimLeft(fullTitle, "Fusion Middleware ")
-				fullTitle = strings.TrimLeft(fullTitle, "Oracle Fusion Middleware ")
-				fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
+					fullTitle = strings.TrimSpace(fullTitle)
+					fullTitle = strings.TrimLeft(fullTitle, "Fusion Middleware ")
+					fullTitle = strings.TrimLeft(fullTitle, "Oracle Fusion Middleware ")
+					localPdf = matchs[1] + "/" + fullTitle + "." + matchs[2] + ".pdf"
+					fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
+				}
 			}
 		}
 
