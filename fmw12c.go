@@ -15,7 +15,7 @@ var fmwBaseURL = "http://docs.oracle.com/en/middleware/"
 var fmwPage = fmwBaseURL + "middleware.html"
 var s12c = ".rel1213" // selector for 1213
 
-func listProducts() map[string]string {
+func listAllProducts() map[string]string {
 	doc, err := goquery.NewDocument(fmwPage)
 	if err != nil {
 		log.Fatal(err)
@@ -23,23 +23,24 @@ func listProducts() map[string]string {
 
 	var href = ""
 	var finded = false
-	var shortTitle = ""
-	//	"../../middleware/1213/cross/getstartedtasks.htm"
+	var title = ""
+	//	"../../middleware/1213/wls/index.html"
 	var re = regexp.MustCompile(`middleware/\d+/(\w+)/\w+.htm`)
-	var m = make(map[string]string)
+	var mProducts = make(map[string]string)
 
 	doc.Find(s12c).Find("a").Each(func(i int, s *goquery.Selection) {
 		href, finded = s.Attr("href")
-		shortTitle = s.Text()
+		title = s.Text()
 		matchs := re.FindStringSubmatch(href)
 
 		if len(matchs) > 1 {
-			m[matchs[1]] = shortTitle
+			mProducts[matchs[1]] = title
 		}
 
 	})
 
-	return m
+	mProducts["cross"] = "Common Documents for Fusion Middleware"
+	return mProducts
 }
 
 func buildURLs(product string) {
@@ -93,18 +94,17 @@ func main() {
 
 	var product = os.Args[1]
 
+	mProducts := listAllProducts()
 	switch product {
 	case "LIST":
 		{
-			m := listProducts()
-			for p, s := range m {
-				fmt.Printf("%s -> %s\n", p, s)
+			for p, title := range mProducts {
+				fmt.Printf("%s -> %s\n", p, title)
 			}
 		}
 	case "ALL":
 		{
-			m := listProducts()
-			for p := range m {
+			for p := range mProducts {
 				buildURLs(p)
 			}
 		}
