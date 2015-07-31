@@ -29,14 +29,13 @@ func listAllProducts() {
 	}
 
 	var href = ""
-	var finded = false
 	var title = ""
 	//	"../../middleware/1213/wls/index.html"
 	var re = regexp.MustCompile(`middleware/\d+/(\w+)/\w+.htm`)
 	var findedlink	prodLink
 
-	doc.Find(versionSelector).Find("a").Each(func(i int, s *goquery.Selection) {
-		href, finded = s.Attr("href")
+	doc.Find(versionSelector).Find("a[href]").Each(func(i int, s *goquery.Selection) {
+		href, _ = s.Attr("href")
 		title = s.Text()
 		matchs := re.FindStringSubmatch(href)
 
@@ -49,25 +48,57 @@ func listAllProducts() {
 	})
 }
 
-func buildURLs(product string) {
-	if (product == "cross"){
-		buildCrossURLs()
-		return
+func buildCommonURLs(pName string) {
+	for _, prodLink := range prodSlices {
+		// 1. get all urls wiht "cross"
+		if (prodLink.abbr != pName) {
+			continue
+		}
+
+		// 2. get into each page and find the url for "Books"
+		doc, err := goquery.NewDocument(prodLink.href.String())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var dirName = ""
+		doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
+			if ( s.Text() == "Books"){
+				href, _ := s.Attr("href")
+				booksUrl, _ := prodLink.href.Parse(href)
+
+				if (pName == "cross") {
+					dirName = "core"
+				}
+				findBooks(booksUrl.String(), "pdf", dirName)
+			}
+		})
 	}
-	var baseURL = "http://docs.oracle.com/middleware/1213/" + product + "/"
-	doc, err := goquery.NewDocument(baseURL + "docs.htm")
+}
+
+func findBooks(booksUrl string, args ...string) {
+	var bookExt = "pdf"
+	var dirRe = `(\w+)`
+	if (len(args) >= 1) {
+		bookExt = args[0]
+	}
+	if (len(args) >= 2) {
+		if (args[1] == "core"){
+			dirRe = "(core)"
+		}
+	}
+
+	// bookHref = "../osb/OSBAG.pdf"  -> ../dir/FILE.pdf
+	var bookRe = regexp.MustCompile(dirRe+`/(\w+).`+bookExt)
+
+	doc, err := goquery.NewDocument(booksUrl)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
-	fmt.Println(baseURL + "docs.htm")
-
-	// pdfHref = "../osb/OSBAG.pdf"  -> ../dir/FILE.pdf
-	var re = regexp.MustCompile(`(\w+)/(\w+).pdf`)
-
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
-		if pdfHref, pdfExists := s.Find("[href$='.pdf']").Attr("href"); pdfExists {
-			fmt.Println(pdfHref)
-			matchs := re.FindStringSubmatch(pdfHref)
+		if bookHref, hrefExists := s.Find("[href$='."+bookExt+"']").Attr("href"); hrefExists {
+			matchs := bookRe.FindStringSubmatch(bookHref)
 			if len(matchs) == 3 {
 				// find the booktitle block
 				bookTitle := s.Find(".booktitle").Text()
@@ -77,20 +108,15 @@ func buildURLs(product string) {
 					bookTitle = strings.Replace(bookTitle, c, "_", -1)
 				}
 
-				localPdf := matchs[1] + "/" + bookTitle + "." + matchs[2] + ".pdf"
+				bookUrl, _ := doc.Url.Parse(bookHref)
+				localBookFileName := matchs[1] + "/" + bookTitle + "." + matchs[2] + ".pdf"
 				fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
-				fmt.Printf("if not exist \"%s\" wget %s%s -O \"%s\"\n", localPdf, baseURL, pdfHref, localPdf)
+				fmt.Printf("if not exist \"%s\" wget %s -O \"%s\"\n", localBookFileName, bookUrl, localBookFileName)
 			}
 		}
 	})
 }
 
-// Common Documents for Fusion Middleware
-func buildCrossURLs() {
-	// 1. get all urls wiht "cross"
-	// 2. get into each page and find the url for "Books"
-	// 3. search the book page find pdf under "/core/"
-}
 
 func readme() {
 	fmt.Println("Usage: fmw12c PRODUCTNAME")
@@ -118,6 +144,6 @@ func main() {
 			}
 		}
 	default:
-		buildURLs(product)
+		buildCommonURLs(product)
 	}
 }
