@@ -48,7 +48,8 @@ func listAllProducts() {
 	})
 }
 
-func buildCommonURLs(pName string) {
+func buildURLs(pName string) {
+	mBooks := make(map[string]string)
 	for _, prodLink := range prodSlices {
 		// 1. get all urls wiht "cross"
 		if (prodLink.abbr != pName) {
@@ -70,7 +71,12 @@ func buildCommonURLs(pName string) {
 				if (pName == "cross") {
 					dirName = "core"
 				}
-				findBooks(booksUrl.String(), "pdf", dirName)
+
+				strUrl := booksUrl.String()
+				if _, found := mBooks[strUrl]; !found {
+					findBooks(strUrl, "pdf", dirName)
+					mBooks[strUrl] = strUrl
+				}
 			}
 		})
 	}
@@ -144,6 +150,6 @@ func main() {
 			}
 		}
 	default:
-		buildCommonURLs(product)
+		buildURLs(product)
 	}
 }
