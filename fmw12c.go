@@ -125,7 +125,7 @@ func findBooks(booksUrl string, args ...string) {
 
 
 func readme() {
-	fmt.Println("Usage: fmw12c PRODUCTNAME")
+	fmt.Println("Usage: fmw12c 11g|12c PRODUCTNAME")
 	fmt.Println("Build commands to download offline files for this product.")
 	fmt.Println("")
 	fmt.Println("PRODUCTNAME=wls     : download files for WebLogic Server.")
@@ -134,14 +134,19 @@ func readme() {
 
 func main() {
 
-	if len(os.Args) == 1 {
+	if len(os.Args) != 3 {
 		readme()
 		os.Exit(0)
 	}
 
-	var product = os.Args[1]
-
+	if (os.Args[1] == "11g"){
+		versionSelector = ".as111190" // selector for 11.1.1.9
+	}else{
+		versionSelector = ".rel1213" // selector for 12.1.3
+	}
 	listAllProducts()
+
+	var product = os.Args[2]
 	switch product {
 	case "LIST":
 		{
