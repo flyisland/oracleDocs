@@ -125,7 +125,7 @@ func findBooks(booksUrl string, args ...string) {
 
 
 func readme() {
-	fmt.Println("Usage: fmw12c 11g|12c PRODUCTNAME")
+	fmt.Println("Usage: go run fmwWget.go 11g|12c PRODUCTNAME")
 	fmt.Println("Build commands to download offline files for this product.")
 	fmt.Println("")
 	fmt.Println("PRODUCTNAME=wls     : download files for WebLogic Server.")
