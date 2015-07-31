@@ -3,18 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
-	"net/url"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
 type prodLink struct {
-	abbr	string
-	name	string
-	href	*url.URL
+	abbr string
+	name string
+	href *url.URL
 }
 
 var invalidFileName = []string{"/", "\\", ":", "*", "?", "\"", "<", ">", "|"}
@@ -32,7 +32,7 @@ func listAllProducts() {
 	var title = ""
 	//	"../../middleware/1213/wls/index.html"
 	var re = regexp.MustCompile(`middleware/\d+/(\w+)/\w+.htm`)
-	var findedlink	prodLink
+	var findedlink prodLink
 
 	doc.Find(versionSelector).Find("a[href]").Each(func(i int, s *goquery.Selection) {
 		href, _ = s.Attr("href")
@@ -52,7 +52,7 @@ func buildURLs(pName string) {
 	mBooks := make(map[string]string)
 	for _, prodLink := range prodSlices {
 		// 1. get all urls wiht "cross"
-		if (prodLink.abbr != pName) {
+		if prodLink.abbr != pName {
 			continue
 		}
 
@@ -64,11 +64,11 @@ func buildURLs(pName string) {
 
 		var dirName = ""
 		doc.Find("a[href]").Each(func(i int, s *goquery.Selection) {
-			if ( s.Text() == "Books"){
+			if s.Text() == "Books" {
 				href, _ := s.Attr("href")
 				booksUrl, _ := prodLink.href.Parse(href)
 
-				if (pName == "cross") {
+				if pName == "cross" {
 					dirName = "core"
 				}
 
@@ -85,17 +85,17 @@ func buildURLs(pName string) {
 func findBooks(booksUrl string, args ...string) {
 	var bookExt = "pdf"
 	var dirRe = `(\w+)`
-	if (len(args) >= 1) {
+	if len(args) >= 1 {
 		bookExt = args[0]
 	}
-	if (len(args) >= 2) {
-		if (args[1] == "core"){
+	if len(args) >= 2 {
+		if args[1] == "core" {
 			dirRe = "(core)"
 		}
 	}
 
 	// bookHref = "../osb/OSBAG.pdf"  -> ../dir/FILE.pdf
-	var bookRe = regexp.MustCompile(dirRe+`/(\w+).`+bookExt)
+	var bookRe = regexp.MustCompile(dirRe + `/(\w+).` + bookExt)
 
 	doc, err := goquery.NewDocument(booksUrl)
 	if err != nil {
@@ -103,7 +103,7 @@ func findBooks(booksUrl string, args ...string) {
 		return
 	}
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
-		if bookHref, hrefExists := s.Find("[href$='."+bookExt+"']").Attr("href"); hrefExists {
+		if bookHref, hrefExists := s.Find("[href$='." + bookExt + "']").Attr("href"); hrefExists {
 			matchs := bookRe.FindStringSubmatch(bookHref)
 			if len(matchs) == 3 {
 				// find the booktitle block
@@ -123,7 +123,6 @@ func findBooks(booksUrl string, args ...string) {
 	})
 }
 
-
 func readme() {
 	fmt.Println("Usage: go run fmwWget.go 11g|12c PRODUCTNAME")
 	fmt.Println("Build commands to download offline files for this product.")
@@ -139,9 +138,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	if (os.Args[1] == "11g"){
+	if os.Args[1] == "11g" {
 		versionSelector = ".as111190" // selector for 11.1.1.9
-	}else{
+	} else {
 		versionSelector = ".rel1213" // selector for 12.1.3
 	}
 	listAllProducts()
