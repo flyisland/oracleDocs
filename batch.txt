@@ -1,0 +1,26 @@
+
+go run fmwWget.go 11g cross > R:\11g.bat
+go run fmwWget.go 11g bpm >> R:\11g.bat
+go run fmwWget.go 11g eventprocessing >> R:\11g.bat
+go run fmwWget.go 11g opss >> R:\11g.bat
+go run fmwWget.go 11g owsm >> R:\11g.bat
+go run fmwWget.go 11g soasuite >> R:\11g.bat
+go run fmwWget.go 11g bam >> R:\11g.bat
+go run fmwWget.go 11g osb >> R:\11g.bat
+go run fmwWget.go 11g wls >> R:\11g.bat
+
+go run fmwWget.go 12c cross > R:\12c.bat
+go run fmwWget.go 12c oac >> R:\12c.bat
+go run fmwWget.go 12c apimgr >> R:\12c.bat
+go run fmwWget.go 12c bpm >> R:\12c.bat
+go run fmwWget.go 12c coherence >> R:\12c.bat
+go run fmwWget.go 12c mft >> R:\12c.bat
+go run fmwWget.go 12c eventprocessing >> R:\12c.bat
+go run fmwWget.go 12c idm >> R:\12c.bat
+go run fmwWget.go 12c owsm >> R:\12c.bat
+go run fmwWget.go 12c mfp >> R:\12c.bat
+go run fmwWget.go 12c soasuite >> R:\12c.bat
+go run fmwWget.go 12c servicecomps >> R:\12c.bat
+go run fmwWget.go 12c bam >> R:\12c.bat
+go run fmwWget.go 12c osb >> R:\12c.bat
+go run fmwWget.go 12c wls >> R:\12c.bat
