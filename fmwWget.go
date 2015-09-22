@@ -104,7 +104,8 @@ func findBooks(booksUrl string, args ...string) {
 	}
 	doc.Find(".booklist").Each(func(i int, s *goquery.Selection) {
 		if bookHref, hrefExists := s.Find("[href$='." + bookExt + "']").Attr("href"); hrefExists {
-			matchs := bookRe.FindStringSubmatch(bookHref)
+			bookUrl, _ := doc.Url.Parse(bookHref)
+			matchs := bookRe.FindStringSubmatch(bookUrl.String())
 			if len(matchs) == 3 {
 				// find the booktitle block
 				bookTitle := s.Find(".booktitle").Text()
@@ -114,7 +115,6 @@ func findBooks(booksUrl string, args ...string) {
 					bookTitle = strings.Replace(bookTitle, c, "_", -1)
 				}
 
-				bookUrl, _ := doc.Url.Parse(bookHref)
 				localBookFileName := matchs[1] + "/" + bookTitle + "." + matchs[2] + ".pdf"
 				fmt.Printf("if not exist %s mkdir %s\n", matchs[1], matchs[1])
 				fmt.Printf("if not exist \"%s\" wget %s -O \"%s\"\n", localBookFileName, bookUrl, localBookFileName)
