@@ -141,7 +141,7 @@ func main() {
 	if os.Args[1] == "11g" {
 		versionSelector = ".as111190" // selector for 11.1.1.9
 	} else {
-		versionSelector = ".rel1213" // selector for 12.1.3
+		versionSelector = ".rel1221" // selector for 12.2.1
 	}
 	listAllProducts()
 
