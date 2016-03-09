@@ -140,8 +140,12 @@ func main() {
 
 	if os.Args[1] == "11g" {
 		versionSelector = ".as111190" // selector for 11.1.1.9
-	} else {
+	} else if os.Args[1] == "12c" {
 		versionSelector = ".rel1221" // selector for 12.2.1
+	} else if os.Args[1] == "download" { // download books form provided url directly
+		var url = os.Args[2]
+		findBooks(url, "pdf")
+		return
 	}
 	listAllProducts()
 
